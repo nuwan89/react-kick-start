@@ -1,70 +1,141 @@
-# Getting Started with Create React App
+# React - SPA
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## Introduction
 
-## Available Scripts
+This application is used to show case React router and code splitting features
 
-In the project directory, you can run:
+## Development guide
 
-### `npm start`
+```console
+npx create-react-app my-react
+npm start
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### Add router
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+```console
+npm i --save react-router-dom
+```
 
-### `npm test`
+Add routes
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+```js
+// index.js
+import React, { Component } from "react";
+import { BrowserRouter, Route, Switch } from "react-router-dom";
 
-### `npm run build`
+ReactDOM.render(
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>
+);
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```jsx
+//App.js
+import "./App.css";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import ProductPage from "./pages/product/ProductPage";
+import CustomerPage from "./pages/customer/CustomerPage";
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+function App() {
+  const navigate = useNavigate(); //This only works in function components!! NOT on CLASS based components
+  // To use that in a ES6 class, wrap class with a function explained below
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+  function goCustomer() {
+    console.log("nav cus");
+    // window.location.href = "/cus"
+    navigate("/cus");
+  }
 
-### `npm run eject`
+  function goHome() {
+    console.log("nav home");
+    navigate("/");
+  }
+  return (
+    <main>
+      <Routes>
+        <Route path="/" element={<ProductPage />} />
+        <Route path="/cus" element={<CustomerPage />} />
+      </Routes>
+      <button onClick={goCustomer}>Customer</button>
+      <button onClick={goHome}>Home</button>
+    </main>
+  );
+}
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+#### useNavigation in ES6 class
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+You need to wrap you ES6 component to a function wrapper!
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+**Also on click needs to be wrapped in an arrow function to bind this**
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```js
+import React from "react";
+import {
+    useLocation,
+    useNavigate,
+    useParams,
+  } from "react-router-dom";
+  
+  function withRouter(Component) {
+    function ComponentWithRouterProp(props) {
+      
+      let location = useLocation();
+      let navigate = useNavigate();
+      let params = useParams();
+      return (
+        <Component
+            {...props}
+            router={{ location, navigate, params }}
+          />
+      );
+    }
+  
+    return ComponentWithRouterProp;
+  }
 
-## Learn More
+class ProductPage extends React.Component {
+  
+  goCustomer() {
+    this.router.navigate('/cus')
+    }
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+   render() {
+     return (
+       <div>
+               <h1>Products Home</h1>
+               <button onClick={() => {this.goCustomer()}}>Go Customer</button>
+           </div>
+       )
+   }
+}
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+export default withRouter(ProductPage);
+```
 
-### Code Splitting
+#### Code splitting/ES6 dynamic modules with Router 
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+```js
+//App.js
 
-### Analyzing the Bundle Size
+import React, { lazy, Suspense } from 'react';
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+const ProductPage = lazy(() => import('./pages/product/ProductPage'))
+const CustomerPage = lazy(() => import('./pages/customer/CustomerPage'))
 
-### Making a Progressive Web App
+function App() {
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+  return (
+  <Suspense fallback={<div>Loading...</div>}>
+      <Routes>
+        <Route path="/" element={<ProductPage pod="pp" />} />
+        <Route path="/cus" element={<CustomerPage name="Thila" />} />
+      </Routes>
+    </Suspense>
+  )
+}
+```
 
-### Advanced Configuration
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
